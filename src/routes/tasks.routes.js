@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { authRequired } from "../middlewares/validadeToken.js";
-import {getTasks,createTasks,getTask,updateTasks,deleteTasks,getCartola} from "../controllers/task.controller.js"
+import {getTasks,createTasks,getTask,updateTasks,deleteTasks,getCartola,getMercadoStatus,getPartidas} from "../controllers/task.controller.js"
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import { createTaskSchema } from "../schemas/task.schema.js";
 
 const router = Router();
 
 router.get('/cartola', getCartola);
+router.get('/mercadoStatus', getMercadoStatus);
+router.get('/partidas', getPartidas);
 router.get('/tasks', getTasks);
 router.get('/tasks/:id',authRequired, getTask)
 router.post('/tasks',authRequired,validateSchema(createTaskSchema),createTasks)

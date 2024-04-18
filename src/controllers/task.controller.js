@@ -12,6 +12,26 @@ export const getCartola = async (req,res) => {
     }
 };
 
+export const getMercadoStatus = async (req,res) => {
+    try {
+        const response = await axios.get('https://api.cartola.globo.com/mercado/status');
+        const data = response.data;
+        res.json(data);
+    } catch (error) {
+        return res.status(404).json({ message: 'Erro ao acessar o endereço JSON' });
+    }
+};
+
+export const getPartidas = async (req,res) => {
+    try {
+        const response = await axios.get('https://api.cartola.globo.com/partidas');
+        const data = response.data;
+        res.json(data);
+    } catch (error) {
+        return res.status(404).json({ message: 'Erro ao acessar o endereço JSON' });
+    }
+};
+
 export const getTasks = async (req,res) => {
     try {
         const tasks = await Task.find({user: req.user.id}).populate('user');  // join faz assim
