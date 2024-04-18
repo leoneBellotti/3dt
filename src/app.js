@@ -8,7 +8,7 @@ import cors from "cors";
 const app = express();
 
 app.use(cors({
-    origin:'https://threedt.onrender.com',
+    origin:['https://threedt.onrender.com','https://cartoola.onrender.com/'],
     credentials:true
 }));
 
