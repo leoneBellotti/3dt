@@ -1,5 +1,16 @@
 
 import Task from "../models/task.model.js";
+import axios from 'axios';
+
+export const getCartola = async (req,res) => {
+    try {
+        const response = await axios.get('https://api.cartola.globo.com/atletas/mercado');
+        const data = response.data;
+        res.json(data);
+    } catch (error) {
+        return res.status(404).json({ message: 'Erro ao acessar o endereço JSON' });
+    }
+};
 
 export const getTasks = async (req,res) => {
     try {
