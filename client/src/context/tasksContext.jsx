@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react/prop-types */
 import { useContext,createContext,useState } from "react";
 import { createTaskRequest,getTasksRequest,deleteTaskRequest,getTaskRequest,updateTaskRequest } from "../api/task";
 

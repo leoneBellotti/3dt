@@ -8,7 +8,7 @@ import cors from "cors";
 const app = express();
 
 app.use(cors({
-    origin:'http://localhost:5173',
+    origin:'https://threedt.onrender.com',
     credentials:true
 }));
 
@@ -16,7 +16,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api", authRoutes);
-app.use("/api", taskRoutes);
+app.use(authRoutes);
+app.use(taskRoutes);
 
 export default app;

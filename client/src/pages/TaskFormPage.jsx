@@ -43,11 +43,11 @@ function TasksFormPage() {
         <div className="flex h-[calc(100vh-100px)] items-center justify-center">
             <div className="bg-zinc-800 max-w-md w-full p-10 rounded-md">
                 <form onSubmit={onSubmit}>
-                    <label for='Title'>Title</label>
+                    <label htmlFor='Title'>Title</label>
                     <input type="text" placeholder="Titulo" {...register("title")} autoFocus className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md my-2 " />
-                    <label for='description'>Description</label>
+                    <label htmlFor='description'>Description</label>
                     <textarea rows='3' placeholder="Descricao" {...register("description")} className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md my-2 " ></textarea>
-                    <label for='description'>Date</label>
+                    <label htmlFor='description'>Date</label>
                     <input type="date" {...register('date')} className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md my-2 " />
                     <button className="bg-indigo-500 px-3 py-2 rounded-md">Salvar</button>
                 </form>
