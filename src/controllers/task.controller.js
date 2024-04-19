@@ -5,10 +5,13 @@ import path from 'path';
 
 export const getCartola = async (req, res) => {
     try {
-        const filePath = path.resolve('./src/data/cartola.json');
-        const data = fs.readFileSync(filePath, 'utf8');
-        res.json(JSON.parse(data));
-        // res.json(filePath);
+        
+        const response = await axios.get('https://api.cartolafc.globo.com/atletas/mercado');
+        res.json(response.data);
+
+        // const filePath = path.resolve('./src/data/cartola.json');
+        // const data = fs.readFileSync(filePath, 'utf8');
+        // res.json(JSON.parse(data));
     } catch (error) {
         return res.status(404).json({ message: 'Erro ao acessar o arquivo JSON',error });
     }
@@ -16,9 +19,8 @@ export const getCartola = async (req, res) => {
 
 export const getMercadoStatus = async (req,res) => {
     try {
-        const response = await axios.get('https://api.cartola.globo.com/mercado/status');
-        const data = response.data;
-        res.json(data);
+        const response = await axios.get('https://api.cartolafc.globo.com/mercado/status');
+        res.json(response.data);
     } catch (error) {
         return res.status(404).json({ message: 'Erro ao acessar o endereço JSON' });
     }
