@@ -5,11 +5,12 @@ import path from 'path';
 
 export const getCartola = async (req, res) => {
     try {
-        const filePath = path.resolve(__dirname, '../data/cartola.json');
+        const filePath = path.resolve('./src/data/cartola.json');
         const data = fs.readFileSync(filePath, 'utf8');
         res.json(JSON.parse(data));
+        // res.json(filePath);
     } catch (error) {
-        return res.status(404).json({ message: 'Erro ao acessar o arquivo JSON' });
+        return res.status(404).json({ message: 'Erro ao acessar o arquivo JSON',error });
     }
 };
 
