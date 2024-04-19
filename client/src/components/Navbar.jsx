@@ -15,10 +15,10 @@ function Navbar() {
                             Bem vindo {user.username}
                         </li>
                         <li>
-                            <Link className="bg-indigo-500 px-4 py-1 rounded-sm" to='/add-task'>nova tarefa</Link>
+                            {/* <Link className="bg-indigo-500 px-4 py-1 rounded-sm" to='/add-task'>nova tarefa</Link> */}
                         </li>
                         <li>
-                            <Link to='/' onClick={() => {logout()}}>Logout</Link>
+                            <Link to='/' className="bg-red-500 px-4 py-1 rounded-sm" onClick={() => {logout()}}>Logout</Link>
                         </li>
                     </>
                 ):(

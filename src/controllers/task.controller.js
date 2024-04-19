@@ -38,7 +38,7 @@ export const getTasks = async (req,res) => {
         if (!tasks) return res.status(404).json({message:'task nao encontrada'});
         res.json(tasks);
     } catch (error) {
-        return res.status(404).json({message:'falha na busca das tarefas'})
+        return res.status(404).json({message:error})
     }
 };
 
