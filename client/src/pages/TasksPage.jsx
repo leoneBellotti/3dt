@@ -9,7 +9,7 @@ function TasksPage() {
     });
 
     useEffect(() => {
-        fetch('https://api.cartola.globo.com/atletas/mercado')
+        fetch('http://localhost:3000/cartola')
             .then(response => response.json())
             .then(data => {
                 const atletasData = data.atletas;

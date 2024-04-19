@@ -1,14 +1,15 @@
-
 import Task from "../models/task.model.js";
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
-export const getCartola = async (req,res) => {
+export const getCartola = async (req, res) => {
     try {
-        const response = await axios.get('https://api.cartola.globo.com/atletas/mercado');
-        const data = response.data;
-        res.json(data);
+        const filePath = path.resolve(__dirname, '../data/cartola.json');
+        const data = fs.readFileSync(filePath, 'utf8');
+        res.json(JSON.parse(data));
     } catch (error) {
-        return res.status(404).json({ message: 'Erro ao acessar o endereço JSON' });
+        return res.status(404).json({ message: 'Erro ao acessar o arquivo JSON' });
     }
 };
 
