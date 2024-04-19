@@ -9,7 +9,7 @@ function TasksPage() {
     });
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/cartola')
+        fetch('https://threedtback.onrender.com/api/cartola')
             .then(response => response.json())
             .then(data => {
                 const atletasData = data.atletas;

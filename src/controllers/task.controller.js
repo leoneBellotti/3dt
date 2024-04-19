@@ -1,7 +1,7 @@
 import Task from "../models/task.model.js";
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
+// import fs from 'fs';
+// import path from 'path';
 
 export const getCartola = async (req, res) => {
     try {
