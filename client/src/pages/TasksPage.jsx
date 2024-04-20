@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable react/prop-types */
 import React , { useState, useEffect } from 'react';
-import axios from 'axios'; 
+import axios from'../api/axios';
 import { format } from 'date-fns';
 
 function TasksPage() { 
@@ -38,7 +38,7 @@ function TasksPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        axios.get('http://localhost:3000/api/cartola')
+        axios.get('/cartola')
         .then(response => {
           const data = response.data;
           setAtletas(data[0].atletas);
