@@ -25,45 +25,31 @@ export const getCartola = async (req, res) => {
 
 export const getMercadoStatus = async (req,res) => {
     try {
-        axios.get('https://sports.sportingbet.com/cds-api/coupons/fixtures', {
-            headers: {
-              'x-bwin-accessid': 'MjcxNjZlZTktOGZkNS00NWJjLTkzYzgtODNkNThkNzZhZDg2',
-              'lang': 'pt-br',
-              'country': 'BR',
-              'userCountry': 'BR',
-              // Outros cabeçalhos, se necessário
-            },
-            params: {
-              sportIds: '4',
-              couponId: '789',
-              skip: '0',
-              take: '30',
-              sortBy: 'Tags',
-              couponSubType: 'Regular',
-              statisticsModes: 'None',
-              scoreboardMode: 'Slim',
-              // Outros parâmetros de consulta, se necessário
-            }
-          })
-          .then(response => {
-            // Manipular a resposta aqui
-            console.log('Resposta:', response.data);
-          })
-          .catch(error => {
-            // Manipular erros aqui
-            console.error('Erro:', error);
-          });
+        const response = await axios.get('https://api.cartolafc.globo.com/mercado/status');
+        res.json(response.data);
     } catch (error) {
         return res.status(404).json({ message: 'Erro ao acessar o endereço JSON' });
     }
 };
 
 export const getBet = async (req,res) => {
+    const options = {
+    method: 'GET',
+    url: 'https://betsapi2.p.rapidapi.com/v1/bet365/upcoming',
+    params: {sport_id: '2'},
+    headers: {
+        'X-RapidAPI-Key': 'ed18b31e6amshd37d7fdef8b2b79p1e65dajsn156ee3cb8244',
+        'X-RapidAPI-Host': 'betsapi2.p.rapidapi.com'
+    }
+    };
+    
     try {
-        const response = await axios.get('https://sports.sportingbet.com/cds-api/coupons/fixtures?x-bwin-accessid=MjcxNjZlZTktOGZkNS00NWJjLTkzYzgtODNkNThkNzZhZDg2&lang=pt-br&country=BR&userCountry=BR&sportIds=4&couponId=789&skip=0&take=30&sortBy=Tags&couponSubType=Regular&statisticsModes=None&scoreboardMode=Slim');
-        res.json(response);
+        const response = await axios.request(options);
+        const data = response.data;
+        console.log(data);
+        res.json(data);
     } catch (error) {
-        return res.status(404).json({ message: 'Erro ao acessar o endereço JSON',error });
+        console.error(error);
     }
 };
 
