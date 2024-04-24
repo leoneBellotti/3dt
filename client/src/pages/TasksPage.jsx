@@ -3,14 +3,19 @@
 import React , { useState, useEffect } from 'react';
 import axios from'../api/axios';
 import { format } from 'date-fns';
+import Loading from "../components/TelaLoading";
+import CampoFutebol from '../pages/campoPage';
 
 function TasksPage() { 
+  const [isLoading, setIsLoading] = useState(true);
   const [atletas, setAtletas] = useState([]);
   const [clubes, setClubes] = useState([]);
   const [status, setStatus] = useState([]);
   const [posicoes, setPosicoes] = useState([]);
   const [rodada, setRodada] = useState([]);
   const [partidas, setPartidas] = useState([]);
+  const [activeItems, setActiveItems] = useState([]);
+  
 
   const statusColors = {
    2: {id:2, nome: "Dúvida", color: "yellow", icon: "⚠️" },
@@ -48,6 +53,7 @@ function TasksPage() {
           setRodada(data[1]);
           setPartidas(data[2].partidas);
           handleLimpaClick();
+          setIsLoading(false);
         })
         .catch(error => {
           console.error('Erro ao buscar dados:', error);
@@ -133,7 +139,7 @@ function TasksPage() {
     if (!array_clubes.includes(clube_id)) {
       setArray_clubes([...array_clubes, clube_id]);
     }
-    console.log(array_clubes)
+    // console.log(array_clubes)
     // setTimeFilter(array_clubes);
   };
   useEffect(() => {
@@ -155,6 +161,7 @@ function TasksPage() {
     setStatusFilter(null);
     setTimeFilter(null);
     setArray_clubes([]);
+    setActiveItems([]);
   };
   const tamanhoFixo = {
     height: '650px'
@@ -248,7 +255,6 @@ function TasksPage() {
     return desempenhoCampeonato;
   };
   
-  // Componente onde a função calcularDesempenhoCampeonato pode ser utilizada
   const DesempenhoCampeonato = (atleta) => {
     const desempenho = calcularDesempenhoCampeonato(atleta);
     return (
@@ -257,40 +263,66 @@ function TasksPage() {
       </div>
     );
   };
+  const ativarItem = (id) => {
+    const isActive = activeItems.includes(id);
+    if (isActive) {
+        // setActiveItems(activeItems.filter(itemId => itemId !== id));
+    } else {
+        setActiveItems([...activeItems, id]);
+    }
+  };
+  const removerActiveItem = (id) => {
+    setActiveItems(activeItems.filter(itemId => itemId !== id));
+  };
+  const [jogadoresSelecionados, setJogadoresSelecionados] = useState([]);
 
+  // Função para lidar com o envio do array de jogadores para o componente CampoFutebol
+  const enviarJogadoresParaCampo = (atleta) => {
+    // console.log(atleta)
+    // Aqui você pode fazer alguma lógica para obter os jogadores selecionados
+    // e atualizar o estado 'jogadoresSelecionados' com esses jogadores
 
+    // Por exemplo, vamos supor que você tenha uma função 'obterJogadoresSelecionados' que retorna os jogadores selecionados
+    // const jogadores = obterJogadoresSelecionados();
+    setJogadoresSelecionados(atleta);
+  };
   return (
     <div>
-      <div className='bg-white text-black flex justify-center items-center space-x-8 pt-3'>
-          {partidas.map((partida, index) => (
-            <div key={index}>
-              <div className='flex'>
-                <div className="flex items-center space-x-1 text-center">
-                  <div onClick={() => handleClubeClick(partida.clube_casa_id)}>
-                    <img 
-                      src={clubes[partida.clube_casa_id]?.escudos['60x60']} 
-                      alt={clubes[partida.clube_casa_id]?.nome}
-                      title={clubes[partida.clube_casa_id]?.nome}
-                      className='block' />
-                  </div>
-                  <div>X</div>
-                  <div onClick={() => handleClubeClick(partida.clube_visitante_id)}>
-                    <img 
-                      src={clubes[partida.clube_visitante_id]?.escudos['60x60']} 
-                      alt={clubes[partida.clube_visitante_id]?.nome}
-                      title={clubes[partida.clube_visitante_id]?.nome}
-                      className='block'  />
-                    </div>
+      {isLoading ? <Loading /> : ''}
+      <CampoFutebol jogadores={jogadoresSelecionados} />
+      <div className='bg-white text-black flex justify-center items-center space-x-8 pt-3 px-3'>
+        {partidas.map((partida, index) => (
+          <div key={index}>
+            <div className='flex'>
+              <div className="flex items-center space-x-1 text-center">
+                <div onClick={() => {handleClubeClick(partida.clube_casa_id);ativarItem(partida.clube_casa_id);}}
+                      className={activeItems.includes(partida.clube_casa_id) ? 'active' : ''}>
+                  <span className="remove-btn" onClick={(e) => { e.stopPropagation(); removerActiveItem(partida.clube_casa_id); }}>x</span>
+                  <img 
+                    src={clubes[partida.clube_casa_id]?.escudos['60x60']} 
+                    alt={clubes[partida.clube_casa_id]?.nome}
+                    title={clubes[partida.clube_casa_id]?.nome}
+                    className='block' />
                 </div>
+                <div>X</div>
+                <div onClick={() => {handleClubeClick(partida.clube_visitante_id);ativarItem(partida.clube_visitante_id)}}
+                      className={activeItems.includes(partida.clube_visitante_id) ? 'active' : ''}>
+                  <img 
+                    src={clubes[partida.clube_visitante_id]?.escudos['60x60']} 
+                    alt={clubes[partida.clube_visitante_id]?.nome}
+                    title={clubes[partida.clube_visitante_id]?.nome}
+                    className='block'  />
+                  </div>
               </div>
-              <div className='text-xs'>{formatDate(partida.partida_data)}</div>
             </div>
-          ))}
-          <button 
-            className='bg-orange-400 text-black rounded-lg p-2' 
-            onClick={() => handleLimpaClick()} 
-            >Limpar filtros
-          </button>
+            <div className='text-xs text-center pt-2'>{formatDate(partida.partida_data)}</div>
+          </div>
+        ))}
+        <button 
+          className='bg-orange-400 text-black rounded-lg p-2' 
+          onClick={() => handleLimpaClick()} 
+          >Limpar filtros
+        </button>
       </div>
       <div className="flex flex-warp">
         <div className="w-5/12 justify-center items-center space-x-4 text-center pt-9 bg-white text-black">
@@ -400,7 +432,7 @@ function TasksPage() {
             <tbody className="sticky top-0 z-10 bg-white divide-y divide-gray-200 text-black">
               {filteredSortedAtletas.map((atleta,index) => (
                 <React.Fragment key={atleta.atleta_id}>
-                  <tr onClick={() => handleClick(index)}>
+                  <tr>
                     <td className="text-center px-6 py-4 whitespace-nowrap">
                       <div className='flex flex-row'>
                         <div className='flex flex-col text-center'>
@@ -458,8 +490,14 @@ function TasksPage() {
                       {atleta.media_num}
                     </td>
                     <td className="text-center px-6 py-4 whitespace-nowrap">
-                      {DesempenhoCampeonato(atleta)}
-                      {calcularDadosAtleta(atleta, atleta.pontos_num).estimativaValorizacao}
+                      {DesempenhoCampeonato(atleta)}<br/>
+                      {calcularDadosAtleta(atleta, atleta.pontos_num).estimativaValorizacao}<br/>
+                      <button 
+                        className='me-2 px-2 w-8 py-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
+                        onClick={() => handleClick(index)}>?</button>
+                      <button 
+                        className='px-2 w-8 py-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50' 
+                        onClick={() => enviarJogadoresParaCampo(atleta)}>+</button>
                     </td>
                   </tr>
                   {activeTr === index && (
@@ -495,6 +533,27 @@ function TasksPage() {
             </tbody>
         </table>
       </div>
+      <style>
+          {`
+              .active {
+                  background-color: #dbdbdb;
+                  padding:3px;
+                  border-radius:24px;
+                  color: #fff;
+              }
+              img{
+                cursor:pointer;
+              }
+              .remove-btn {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                color: #000;
+                padding: 2px;
+                cursor: pointer;
+              }              
+          `}
+      </style>
     </div>
   );
 }

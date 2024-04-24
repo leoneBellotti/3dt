@@ -1,22 +1,29 @@
+/* eslint-disable no-undef */
 import {useForm} from "react-hook-form";
 import { useAuth } from "../context/AuthContext";
 import {Link,useNavigate} from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
+import Loading from "../components/TelaLoading";
 
 function LoginPage() {
-
+    const [isLoading, setIsLoading] = useState(true);
     const {register,handleSubmit,formState:{errors}} = useForm();
     const {signin,errors:signinErrors,isAuthenticated} = useAuth();
     const navigate = useNavigate();
     const onSubmit = handleSubmit(data => {
+        setIsLoading(true);
         signin(data);
     });
     useEffect(() => {
         if(isAuthenticated) navigate('/tasks');
-    },[isAuthenticated])
+    },[isAuthenticated, navigate])
 
+    useEffect(() => {
+        setIsLoading(false);
+    }, []);
     return (
         <div className="flex h-[calc(100vh-100px)] items-center justify-center">
+            {isLoading ? <Loading /> : ''}
             <div className="bg-zinc-800 max-w-md w-full p-10 rounded-md">
                 {
                     signinErrors.map((error,i) => (
