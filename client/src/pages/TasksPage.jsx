@@ -15,6 +15,7 @@ function TasksPage() {
   const [rodada, setRodada] = useState([]);
   const [partidas, setPartidas] = useState([]);
   const [activeItems, setActiveItems] = useState([]);
+  const [mediaGeralScouts, setMediaGeralScouts] = useState([]);
   
 
   const statusColors = {
@@ -54,6 +55,7 @@ function TasksPage() {
           setPartidas(data[2].partidas);
           handleLimpaClick();
           setIsLoading(false);
+          setMediaGeralScouts(calcularMediaGeral(data[0].atletas));
         })
         .catch(error => {
           console.error('Erro ao buscar dados:', error);
@@ -154,7 +156,7 @@ function TasksPage() {
 
   const formatDate = (dateString) => {
     return format(new Date(dateString), 'dd/MM HH:mm');
-  } 
+  };
 
   const handleLimpaClick = () => {
     setPosicaoFilter(null);
@@ -163,78 +165,164 @@ function TasksPage() {
     setArray_clubes([]);
     setActiveItems([]);
   };
+
   const tamanhoFixo = {
     height: '650px'
   };
+
+  const calcularMediaGeral = (listaAtletas) => {
+    const somaScouts = {
+      GS: 0,
+      G: 0,
+      CA: 0,
+      CV: 0,
+      FS: 0,
+      DD: 0,
+      RB: 0,
+      PE: 0,
+      FT: 0,
+      FO: 0,
+      DE: 0,
+      SG: 0,
+      DS: 0,
+      FC: 0,
+      FF: 0,
+      P: 0,
+      PC: 0,
+      I: 0,
+    };
+    const maxScouts = {};
+    for (const key in somaScouts) {
+      if (somaScouts.hasOwnProperty(key)) {
+        maxScouts[key] = { valor: 0, jogador: null };
+      }
+    }
+  
+
+    listaAtletas.forEach((atleta) => {
+      const scout = atleta.scout;
+      for (const key in scout) {
+        if (scout.hasOwnProperty(key)) {
+          somaScouts[key] += scout[key];
+          if (scout[key] && maxScouts[key]) {
+              if(scout[key] > maxScouts[key].valor){
+                maxScouts[key].valor = scout[key];
+                maxScouts[key].jogador = atleta;
+              }
+          }
+        }
+      }
+    });
+  
+    const mediaGeral = {};
+    for (const key in somaScouts) {
+      if (somaScouts.hasOwnProperty(key)) {
+        mediaGeral[key] = somaScouts[key];
+      }
+    }
+    return [maxScouts,mediaGeral];
+  };
+
   const calcularEstatisticas = (atleta) => {
     const scout = atleta.scout;
-    const estatisticas = {
-      golsPorPartida: scout.GS || 0,
-      cartoesAmarelos: scout.CA || 0,
-      cartoesVermelhos: scout.CV || 0,
-      faltasSofridas: scout.FS || 0,
-      defesasDificeis: scout.DD || 0,
-      roubadasDeBola: scout.RB || 0,
-      passesErrados: scout.PE || 0,
-      finalizacoesNaTrave: scout.FT || 0,
-      finalizacoesParaFora: scout.FO || 0,
+    const nomeCompleto = {
+      GS: "Gols por partida",
+      G: "Gols",
+      CA: "Cartões Amarelos",
+      CV: "Cartões Vermelhos",
+      FS: "Faltas Sofridas",
+      DD: "Defesas Difíceis",
+      RB: "Roubadas de Bola",
+      PE: "Passes Errados",
+      FT: "Finalizações na Trave",
+      FO: "Finalizações para Fora",
+      DS: "Defesas de Pênalti",
+      FC: "Faltas Cometidas",
+      FF: "Finalizações a Favor",
+      P: "Passes",
+      PC: "Passes certos",
+      I: "Interceptações",
     };
-    
+    const estatisticas = {
+      GS: scout.GS || 0,
+      G: scout.G || 0,
+      CA: scout.CA || 0,
+      CV: scout.CV || 0,
+      FS: scout.FS || 0,
+      DD: scout.DD || 0,
+      RB: scout.RB || 0,
+      PE: scout.PE || 0,
+      FT: scout.FT || 0,
+      FO: scout.FO || 0,
+      DS: scout.DS || 0,
+      FC: scout.FC || 0,
+      FF: scout.FF || 0,
+      P: scout.P || 0,
+      PC: scout.PC || 0,
+      I: scout.I || 0,
+    };
+    // console.log(mediaGeralScouts)
     return (
       <ul className="list-disc list-inside">
-        <li><strong>Gols por partida:</strong> {estatisticas.golsPorPartida}</li>
-        <li><strong>Cartões Amarelos:</strong> {estatisticas.cartoesAmarelos}</li>
-        <li><strong>Cartões Vermelhos:</strong> {estatisticas.cartoesVermelhos}</li>
-        <li><strong>Faltas Sofridas:</strong> {estatisticas.faltasSofridas}</li>
-        <li><strong>Defesas Difíceis:</strong> {estatisticas.defesasDificeis}</li>
-        <li><strong>Roubadas de Bola:</strong> {estatisticas.roubadasDeBola}</li>
-        <li><strong>Passes Errados:</strong> {estatisticas.passesErrados}</li>
-        <li><strong>Finalizações na Trave:</strong> {estatisticas.finalizacoesNaTrave}</li>
-        <li><strong>Finalizações para Fora:</strong> {estatisticas.finalizacoesParaFora}</li>
+        {Object.entries(estatisticas).map(([key, value]) => {
+          if (value > 0) {
+            return (
+              <li key={key}>
+                <strong>{nomeCompleto[key]}:</strong> {value}
+                &nbsp;&nbsp;&nbsp;
+                <b>1º da liga:</b> {mediaGeralScouts[0][key].valor} por {mediaGeralScouts[0][key].jogador.apelido} do {clubes[mediaGeralScouts[0][key].jogador.clube_id]?.apelido}
+              </li>
+            )
+          }
+          return null;
+        })}
       </ul>
     );
   };
 
   const calcularDadosAtleta = (atleta, ultimaPontuacao) => {
-    // Cálculo do mínimo para valorizar
     const precoAtual = atleta.preco_num || 0;
     const minimoParaValorizar = precoAtual + 0.25;
   
-    // Cálculo da estimativa de valorização
     const mediaHistorica = atleta.media_num || 0;
     let estimativaValorizacao;
-    if ( mediaHistorica && ultimaPontuacao > mediaHistorica) {
-      estimativaValorizacao = 'Provável valorização';
+
+    if (mediaHistorica && ultimaPontuacao > mediaHistorica) {
+      estimativaValorizacao = <span className="text-green-500">+$ Pode valorizar</span>;
     } else {
-      estimativaValorizacao = 'Possível desvalorização';
+      estimativaValorizacao = <span className="text-red-500">-$ Talvez desvalorize</span>;
     }
   
-    // Retornar um objeto contendo ambas as informações
     return {
       minimoParaValorizar,
-      estimativaValorizacao
+      estimativaValorizacao,
     };
   };
 
   const calcularDesempenhoCampeonato = (atleta) => {
-    // Obter o scout e a média de pontos do jogador
     const scout = atleta.scout || {};
     const mediaPontos = atleta.media_num || 0;
   
-    // Atribuir pontos para cada estatística do scout
     const pontosScout = {
-      GS: 3, // 3 pontos por gol
-      CA: -1, // -1 ponto por cartão amarelo
-      CV: -3, // -3 pontos por cartão vermelho
-      FS: 0.5, // 0.5 ponto por falta sofrida
-      DD: 2, // 1 ponto por defesa difícil
-      RB: 0.5, // 0.5 ponto por roubada de bola
-      PE: -0.5, // -0.5 ponto por passe errado
-      FT: 0, // 0 pontos por finalização na trave
-      FO: 0, // 0 pontos por finalização para fora
+      CA: -1, // Pontos por cartão amarelo
+      DD: 4, // Pontos por defesa difícil
+      DE: 3, // Pontos para defesa
+      DS: 4, // Pontos para defesa de pênalti
+      FC: -2, // Pontos para falta cometida
+      FF: 1, // Pontos por finalização a gol
+      FO: 0, // Pontos por finalização para fora
+      FS: 1, // Pontos por falta sofrida
+      FT: 0, // Pontos por finalização na trave
+      G: 3, // Pontos por gol
+      GS: -2, // Pontos por gol sofrido
+      I: 1, // Pontos por interceptação
+      PE: -0.5, // Pontos por passe errado
+      RB: 0.5, // Pontos por roubada de bola
+      P: 0.5, // Pontos por passe
+      PC: 1, // Pontos por passe certo
+      SG: 2, // Pontos por jogo sem sofrer gol
     };
   
-    // Calcular a pontuação total com base no scout
     let pontuacaoTotal = 0;
     for (const stat in scout) {
       if (pontosScout.hasOwnProperty(stat)) {
@@ -242,14 +330,13 @@ function TasksPage() {
       }
     }
   
-    // Comparar a pontuação total com a média de pontos do jogador
     let desempenhoCampeonato;
     if (pontuacaoTotal > mediaPontos) {
-      desempenhoCampeonato = pontuacaoTotal+' 🔼';
+      desempenhoCampeonato = pontuacaoTotal+' 🟢';
     } else if (pontuacaoTotal < mediaPontos) {
-      desempenhoCampeonato = pontuacaoTotal+' 🔽';
+      desempenhoCampeonato = pontuacaoTotal+' 🟠';
     } else {
-      desempenhoCampeonato = pontuacaoTotal+' ➡️';
+      desempenhoCampeonato = pontuacaoTotal+' 🟡';
     }
   
     return desempenhoCampeonato;
@@ -276,15 +363,21 @@ function TasksPage() {
   };
   const [jogadoresSelecionados, setJogadoresSelecionados] = useState([]);
 
-  // Função para lidar com o envio do array de jogadores para o componente CampoFutebol
   const enviarJogadoresParaCampo = (atleta) => {
-    // console.log(atleta)
-    // Aqui você pode fazer alguma lógica para obter os jogadores selecionados
-    // e atualizar o estado 'jogadoresSelecionados' com esses jogadores
-
-    // Por exemplo, vamos supor que você tenha uma função 'obterJogadoresSelecionados' que retorna os jogadores selecionados
-    // const jogadores = obterJogadoresSelecionados();
     setJogadoresSelecionados(atleta);
+  };
+
+  const listarAtletasComScout = (scoutDesejado, valorDesejado) => {
+    const atletasComScout = [];
+    // console.log(listaAtletas, scoutDesejado, valorDesejado)
+    atletas.forEach((atleta) => {
+      const scout = atleta.scout;
+      if (scout[scoutDesejado] === valorDesejado) {
+        atletasComScout.push(atleta);
+      }
+    });
+    // console.log(atletasComScout)
+    return atletasComScout;
   };
   return (
     <div>
@@ -325,7 +418,7 @@ function TasksPage() {
         </button>
       </div>
       <div className="flex flex-warp">
-        <div className="w-5/12 justify-center items-center space-x-4 text-center pt-9 bg-white text-black">
+        <div className="w-3/12 justify-center items-center space-x-4 text-center pt-9 bg-white text-black">
           { status.length != 0 ? 
             arrayStatus.map((item, index) => (
               <button key={index} onClick={() => setStatusFilter(item.id)}>
@@ -334,7 +427,7 @@ function TasksPage() {
             ))
           : '' }
         </div>
-        <div className="w-6/12 justify-center items-center space-x-4 text-center pt-9 bg-white">
+        <div className="w-3/12 justify-center items-center space-x-4 text-center pt-9 bg-white">
           {arrayPosicoes.map((posicaoItem) => (
             <button
               onClick={() => setPosicaoFilter(posicaoItem.id)}
@@ -345,29 +438,56 @@ function TasksPage() {
             </button>
           ))}
         </div>
-        <div className='w-2/12 bg-white'>
+        <div className='w-5/12 bg-white text-black flex flex-row'>
+          {mediaGeralScouts[0]?
+          <div className='flex flex-col flex-grow'>
+            <b>Goleadores da liga ({mediaGeralScouts[0]['G'].valor} gols):</b>
+            <div style={{ overflowY: 'auto', height: '70px' }} className='flex flex-col'>
+              {listarAtletasComScout('G', mediaGeralScouts[0]['G'].valor).map((atleta) => (
+                <div key={atleta.atleta_id}>
+                  <p>{atleta.apelido} do {clubes[atleta.clube_id]?.apelido};</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          :''}
+          
+          {mediaGeralScouts[0]?
+          <div className='flex flex-col flex-grow'>
+            <b>Interceptacoes ({mediaGeralScouts[0]['I'].valor} gols):</b>
+            <div style={{ overflowY: 'auto', height: '70px' }} className='flex flex-col'>
+              {listarAtletasComScout('I', mediaGeralScouts[0]['I'].valor).map((atleta) => (
+                <div key={atleta.atleta_id}>
+                  <p>{atleta.apelido} do {clubes[atleta.clube_id]?.apelido};</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          :''}
+        </div>
+        <div className='w-1/12 bg-white'>
           {rodada.status_mercado !== 1 ? (
             <div className="flex flex-col items-center text-red-500">
+              <span>Mercado</span>
+              <span>fechado</span>
               <svg className="h-8 w-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
-              <span>Mercado</span>
-              <span>fechado</span>
             </div>
           ) : (
             <div className="flex flex-col items-center text-green-500 text-center m-4">
+              <span className='text-xs'>Mercado</span>
+              <span className='text-xs'>aberto</span>
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
               </svg>
-              <span className='text-xs'>Mercado</span>
-              <span className='text-xs'>aberto</span>
               
               {timeLeft.dias > 0 && (
                 <span>{timeLeft.dias} dias </span>
               )}
               {timeLeft.horas > 0 && (
                 <span className='flex flex-row text-black'>
-                  <span className='text-xs pt-1'> Fecha em: </span>
+                  <span className='text-xs pt-1'> Fecha: </span>
                   <span className='font-bold ms-4'>{timeLeft.horas}h</span>
                 </span>
               )}
@@ -489,15 +609,15 @@ function TasksPage() {
                     <td className="text-center px-6 py-4 whitespace-nowrap">
                       {atleta.media_num}
                     </td>
-                    <td className="text-center px-6 py-4 whitespace-nowrap">
-                      {DesempenhoCampeonato(atleta)}<br/>
+                    <td className="text-center px-6 py-4">
+                      {DesempenhoCampeonato(atleta)}
                       {calcularDadosAtleta(atleta, atleta.pontos_num).estimativaValorizacao}<br/>
                       <button 
                         className='me-2 px-2 w-8 py-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
                         onClick={() => handleClick(index)}>?</button>
                       <button 
-                        className='px-2 w-8 py-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50' 
-                        onClick={() => enviarJogadoresParaCampo(atleta)}>+</button>
+                        className='px-2 w-8 py-1 bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50' 
+                        onClick={() => enviarJogadoresParaCampo(atleta)}><b>+</b></button>
                     </td>
                   </tr>
                   {activeTr === index && (
