@@ -8,15 +8,15 @@ import ProfilePage from "./pages/profilePage";
 import HomePage from "./pages/HomePage";
 import ProtectedRoute from "./ProtectedRoute";
 import { TaskProvider } from "./context/tasksContext";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <AuthProvider>
       <TaskProvider>
         <BrowserRouter>
-          <main className="container mx-auto px-10">
-            <Navbar/>
+          <main className="container mx-auto px-10 pt-2">
+            {/* <Navbar/> */}
             <Routes>
               <Route path="/" element={<HomePage/>}/>
               <Route path="/login" element={<LoginPage/>}/>

@@ -15,7 +15,7 @@ function Navbar() {
                             Bem vindo {user.username}
                         </li>
                         <li>
-                            <Link className="bg-indigo-500 px-4 py-1 rounded-sm" to='/'>home</Link>
+                            {/* <Link className="bg-indigo-500 px-4 py-1 rounded-sm" to='/'>home</Link> */}
                         </li>
                         <li>
                             <Link to='/' className="bg-red-500 px-4 py-1 rounded-sm" onClick={() => {logout()}}>Logout</Link>
