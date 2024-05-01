@@ -67,34 +67,22 @@ export const loginCartola = async (req,res) => {
     const email = 'leone.bellotti@gmail.com';
     const password = 'b3ll0tt1';
     const serviceId = 4728;
-    
+
     const url = 'https://login.globo.com/api/authentication';
-    axios.defaults.agent = false;
+
     const jsonAuth = {
       captcha: '',
       payload: {
-        email: email,
-        password: password,
-        serviceId: serviceId
+        email,
+        password,
+        serviceId
       }
     };
-    
-    axios.post(url, jsonAuth, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      const result = response.data;
-      if (!result.glbId) {
-        console.error('Erro: glbId não encontrado no resultado.');
-        return;
-      }
-      console.log('glbId:', result.glbId);
-    })
-    .catch(error => {
-      console.error('Erro ao fazer a requisição:', error);
-    });
+
+    const response = await axios.post(url, jsonAuth);
+    const { glbId } = response.data;
+
+    console.log(glbId);
 };
 
 export const getTasks = async (req,res) => {

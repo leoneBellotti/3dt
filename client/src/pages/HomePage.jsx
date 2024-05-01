@@ -4,7 +4,9 @@ import React , { useState, useEffect } from 'react';
 import axios from'../api/axios';
 import { format } from 'date-fns';
 import Loading from "../components/TelaLoading";
-import CampoFutebol from '../pages/campoPage';
+import { Tooltip } from 'react-tooltip'
+// import Tooltip from '../components/ToolTip';
+// import CampoFutebol from '../pages/campoPage';
 
 function HomePage() { 
   const [isLoading, setIsLoading] = useState(true);
@@ -111,8 +113,71 @@ function HomePage() {
     }
   };
 
+  const calcularDesempenhoCampeonato = (atleta) => {
+    const scout = atleta.scout || {};
+    // const mediaPontos = atleta.media_num || 0;
+  
+    const pontosScout = {
+      G: 8, // gol
+      A: 5, // assistencia
+      FT: 3, // finalização na trave
+      FD: 1.2, // finalização defendida
+      FO: 0.8, // finalização para fora
+      FF: 0.8, // finalização para fora
+      FS: 0.5, // falta sofrida
+      PS: 1, // penalti sofrido
+      PP: -4, // penalti perdido
+      I: -0.1, // impedimento
+      DP: 7, // defesa penalti
+      SG: 5, // jogo sem sofrer gol
+      DE: 1, // defesa
+      D: 1, // defesa
+      DS: 1.2, // desarme
+      GC: -3, // gol contra
+      CV: -3, // cartão vermelho
+      CA: -1, // cartão amarelo
+      GS: -1, // gol sofrido
+      FC: -0.3, // falta cometida
+      PC: -1, // penalti cometido
+      V: 1, // penalti cometido
+      DD: 4, // defesa difícil
+      PE: -0.5, // passe errado
+      RB: 0.5, // roubada de bola
+      P: 0.5, // passe
+    };
+  
+    let pontuacaoTotal = 0;
+    for (const stat in scout) {
+      if (pontosScout.hasOwnProperty(stat)) {
+        pontuacaoTotal += scout[stat] * pontosScout[stat];
+      }
+    }
+  
+    pontuacaoTotal = pontuacaoTotal.toFixed(1);
+  
+    return pontuacaoTotal;
+  };
+  
+  const DesempenhoCampeonato = (atleta) => {
+    const desempenho = calcularDesempenhoCampeonato(atleta);
+    return (
+      <div title='Calculo dos scouts do atleta.'>
+        Desempenho: {desempenho}
+      </div>
+    );
+  };
+
+  const extrairNumero = (str) => {
+    const numeros = str.match(/-?\d+(\.\d+)?/g);
+    return numeros ? parseFloat(numeros[0]) : 0;
+  }
+
   const sortedAtletas = [...atletas].sort((a, b) => {
-    if (sortColumn) {
+    if (sortColumn === 'estatistica') {
+      const columnA = extrairNumero(calcularDesempenhoCampeonato(a));
+      const columnB = extrairNumero(calcularDesempenhoCampeonato(b));
+      return sortDirection === 'asc' ? columnA - columnB : columnB - columnA;
+    } else if (sortColumn) {
       const columnA = a[sortColumn];
       const columnB = b[sortColumn];
       if (!isNaN(parseFloat(columnA)) && !isNaN(parseFloat(columnB))) {
@@ -144,6 +209,7 @@ function HomePage() {
     // console.log(array_clubes)
     // setTimeFilter(array_clubes);
   };
+
   useEffect(() => {
     array_clubes.length > 0 ? setTimeFilter(array_clubes):''; 
   }, [array_clubes]);
@@ -172,24 +238,32 @@ function HomePage() {
 
   const calcularMediaGeral = (listaAtletas) => {
     const somaScouts = {
-      GS: 0,
-      G: 0,
-      CA: 0,
-      CV: 0,
-      FS: 0,
-      DD: 0,
-      RB: 0,
-      PE: 0,
-      FT: 0,
-      FO: 0,
-      DE: 0,
-      SG: 0,
-      DS: 0,
-      FC: 0,
-      FF: 0,
-      P: 0,
-      PC: 0,
-      I: 0,
+      G:0,
+      A:0,
+      FT:0,
+      FD:0,
+      FO:0,
+      FF:0,
+      FS:0,
+      PS:0,
+      PP:0,
+      I:0,
+      DP:0,
+      SG:0,
+      DE:0,
+      D:0,
+      DS:0,
+      GC:0,
+      CV:0,
+      CA:0,
+      GS:0,
+      FC:0,
+      PC:0,
+      V:0,
+      DD:0,
+      PE:0,
+      RB:0,
+      P:0
     };
     const maxScouts = {};
     for (const key in somaScouts) {
@@ -220,74 +294,124 @@ function HomePage() {
         mediaGeral[key] = somaScouts[key];
       }
     }
+    // console.log(maxScouts)
     return [maxScouts,mediaGeral];
   };
 
   const calcularEstatisticas = (atleta) => {
     const scout = atleta.scout;
     const nomeCompleto = {
-      GS: "Gols por partida",
-      G: "Gols",
-      CA: "Cartões Amarelos",
-      CV: "Cartões Vermelhos",
-      FS: "Faltas Sofridas",
-      DD: "Defesas Difíceis",
-      RB: "Roubadas de Bola",
-      PE: "Passes Errados",
-      FT: "Finalizações na Trave",
-      FO: "Finalizações para Fora",
-      DS: "Defesas de Pênalti",
-      FC: "Faltas Cometidas",
-      FF: "Finalizações a Favor",
-      P: "Passes",
-      PC: "Passes certos",
-      I: "Interceptações",
+      G:['gol','+'],
+      A:['assistencia','+'],
+      FT:['finalização na trave','+'],
+      FD:['finalização defendida','+'],
+      FO:['finalização para fora','+'],
+      FF:['finalização para fora','+'],
+      FS:['falta sofrida','+'],
+      PS:['penalti sofrido','+'],
+      PP:['penalti perdido','-'],
+      I:['impedimento','-'],
+      DP:['defesa penalti','+'],
+      SG:['jogo sem sofrer gol','+'],
+      DE:['defesa','+'],
+      D:['defesa','+'],
+      DS:['desarme','+'],
+      GC:['gol contra','-'],
+      CV:['cartão vermelho','-'],
+      CA:['cartão amarelo','-'],
+      GS:['gol sofrido','-'],
+      FC:['falta cometida','-'],
+      PC:['penalti cometido','-'],
+      V:['penalti cometido','-'],
+      DD:['defesa difícil','+'],
+      PE:['passe errado','-'],
+      RB:['roubada de bola','+'],
+      P:['passe','+']
     };
     const estatisticas = {
-      GS: scout.GS || 0,
       G: scout.G || 0,
-      CA: scout.CA || 0,
-      CV: scout.CV || 0,
-      FS: scout.FS || 0,
-      DD: scout.DD || 0,
-      RB: scout.RB || 0,
-      PE: scout.PE || 0,
+      A: scout.A || 0,
       FT: scout.FT || 0,
+      FD: scout.FD || 0,
       FO: scout.FO || 0,
-      DS: scout.DS || 0,
-      FC: scout.FC || 0,
       FF: scout.FF || 0,
-      P: scout.P || 0,
-      PC: scout.PC || 0,
+      FS: scout.FS || 0,
+      PS: scout.PS || 0,
+      PP: scout.PP || 0,
       I: scout.I || 0,
+      DP: scout.DP || 0,
+      SG: scout.SG || 0,
+      DE: scout.DE || 0,
+      D: scout.D || 0,
+      DS: scout.DS || 0,
+      GC: scout.GC || 0,
+      CV: scout.CV || 0,
+      CA: scout.CA || 0,
+      GS: scout.GS || 0,
+      FC: scout.FC || 0,
+      PC: scout.PC || 0,
+      V: scout.V || 0,
+      DD: scout.DD || 0,
+      PE: scout.PE || 0,
+      RB: scout.RB || 0,
+      P: scout.P || 0
     };
-    // console.log(mediaGeralScouts)
+    const formatarJogadores = (jogadores) => {
+      return jogadores.map(jogador => jogador.nome).join(', ');
+    };
+    const gerarTextoTooltip = (key) => {
+      const maiorMenorScout = obterMaiorMenorScoutTipo(key);
+      // console.log(maiorMenorScout);
+      const textoTool = `
+        Com ${maiorMenorScout.maiorValor} ${nomeCompleto[key][0]}: ${formatarJogadores(maiorMenorScout.maiorAtletas)}; 
+      `;
+      const textoTool2 = `
+        Com	${maiorMenorScout.menorValor} ${nomeCompleto[key][0]}: ${formatarJogadores(maiorMenorScout.menorAtletas)};
+      `;
+    
+      // Retorna o texto do tooltip com HTML
+      return [textoTool,textoTool2,maiorMenorScout.maiorValor,maiorMenorScout.menorValor ];
+    };
     return (
-      <ul className="list-disc list-inside">
+      <div className="grid grid-cols-1 gap-1 text-sm">
         {Object.entries(estatisticas).map(([key, value]) => {
           if (value > 0) {
             return (
-              <li key={key}>
-                <strong>{nomeCompleto[key]}:</strong> {value}
-                &nbsp;&nbsp;&nbsp;
-                <b>1º da liga:</b> {mediaGeralScouts[0][key].valor} por {mediaGeralScouts[0][key].jogador.apelido} do {clubes[mediaGeralScouts[0][key].jogador.clube_id]?.apelido}
-              </li>
+              <ul key={key} className="list-disc list-inside">
+                <li>
+                  <strong className='pe-2'>{nomeCompleto[key][0]}:</strong> 
+                  {value}
+                  <a id={key+'toolTip'} className='cursor-pointer'> 📋 </a>
+                  {value == gerarTextoTooltip(key)[2] && nomeCompleto[key][1] == '+' ?
+                    <i className='cursor-pointer' title="Jogador esta entre os melhores!!!"> 🌟 </i>
+                  : value == gerarTextoTooltip(key)[2] && nomeCompleto[key][1] == '-' ?
+                    <i className='cursor-pointer' title="Jogador esta entre os piores!!!"> 🔴 </i>
+                  :
+                    null
+                  }
+                  <Tooltip anchorSelect={'#'+key+'toolTip'} clickable>
+                    &#8593; {gerarTextoTooltip(key)[0]}
+                    <br/>
+                    &#8595; {gerarTextoTooltip(key)[1]}
+                  </Tooltip>
+                </li>
+              </ul>
             )
           }
           return null;
         })}
-      </ul>
+      </div>
     );
   };
 
   const calcularDadosAtleta = (atleta, ultimaPontuacao) => {
-    const precoAtual = atleta.preco_num || 0;
-    const minimoParaValorizar = precoAtual + 0.25;
-  
-    const mediaHistorica = atleta.media_num || 0;
-    let estimativaValorizacao;
 
-    if (mediaHistorica && ultimaPontuacao > mediaHistorica) {
+    const mediaHistorica = atleta.media_num || 0;
+    const minimoParaValorizar = mediaHistorica + 0.5;
+  
+    let estimativaValorizacao;
+  
+    if (ultimaPontuacao >= minimoParaValorizar) {
       estimativaValorizacao = <span className="text-green-500">+$ Pode valorizar</span>;
     } else {
       estimativaValorizacao = <span className="text-red-500">-$ Talvez desvalorize</span>;
@@ -299,58 +423,6 @@ function HomePage() {
     };
   };
 
-  const calcularDesempenhoCampeonato = (atleta) => {
-    const scout = atleta.scout || {};
-    const mediaPontos = atleta.media_num || 0;
-  
-    const pontosScout = {
-      CA: -1, // Pontos por cartão amarelo
-      CV: -3, // Pontos por cartão vermelho
-      DD: 4, // Pontos por defesa difícil
-      DE: 3, // Pontos para defesa
-      DS: 4, // Pontos para defesa de pênalti
-      FC: -2, // Pontos para falta cometida
-      FF: 1, // Pontos por finalização a gol
-      FO: 0, // Pontos por finalização para fora
-      FS: 1, // Pontos por falta sofrida
-      FT: 0, // Pontos por finalização na trave
-      G: 3, // Pontos por gol
-      GS: -2, // Pontos por gol sofrido
-      I: 1, // Pontos por interceptação
-      PE: -0.5, // Pontos por passe errado
-      RB: 0.5, // Pontos por roubada de bola
-      P: 0.5, // Pontos por passe
-      PC: 1, // Pontos por passe certo
-      SG: 2, // Pontos por jogo sem sofrer gol
-    };
-  
-    let pontuacaoTotal = 0;
-    for (const stat in scout) {
-      if (pontosScout.hasOwnProperty(stat)) {
-        pontuacaoTotal += scout[stat] * pontosScout[stat];
-      }
-    }
-  
-    let desempenhoCampeonato;
-    if (pontuacaoTotal > mediaPontos) {
-      desempenhoCampeonato = pontuacaoTotal+' 🟢';
-    } else if (pontuacaoTotal < mediaPontos) {
-      desempenhoCampeonato = pontuacaoTotal+' 🟠';
-    } else {
-      desempenhoCampeonato = pontuacaoTotal+' 🟡';
-    }
-  
-    return desempenhoCampeonato;
-  };
-  
-  const DesempenhoCampeonato = (atleta) => {
-    const desempenho = calcularDesempenhoCampeonato(atleta);
-    return (
-      <div>
-        Desempenho: {desempenho}
-      </div>
-    );
-  };
   const ativarItem = (id) => {
     const isActive = activeItems.includes(id);
     if (isActive) {
@@ -359,31 +431,63 @@ function HomePage() {
         setActiveItems([...activeItems, id]);
     }
   };
+
   const removerActiveItem = (id) => {
     setActiveItems(activeItems.filter(itemId => itemId !== id));
   };
-  const [jogadoresSelecionados, setJogadoresSelecionados] = useState([]);
 
-  const enviarJogadoresParaCampo = (atleta) => {
-    setJogadoresSelecionados(atleta);
-  };
-
-  const listarAtletasComScout = (scoutDesejado, valorDesejado) => {
-    const atletasComScout = [];
-    // console.log(listaAtletas, scoutDesejado, valorDesejado)
-    atletas.forEach((atleta) => {
-      const scout = atleta.scout;
-      if (scout[scoutDesejado] === valorDesejado) {
-        atletasComScout.push(atleta);
+  const obterMaiorMenorScoutTipo = (scoutEscolhido) => {
+    let maiorAtletas = [];
+    let menorAtletas = [];
+    let maiorValor = -Infinity;
+    let menorValor = Infinity;
+  
+    for (const atleta of atletas) {
+      const valorScout = atleta.scout[scoutEscolhido];
+  
+      if (valorScout > maiorValor) {
+        maiorValor = valorScout;
+        maiorAtletas = [atleta];
+      } else if (valorScout === maiorValor) {
+        maiorAtletas.push(atleta);
       }
-    });
-    // console.log(atletasComScout)
-    return atletasComScout;
-  };
+  
+      if (valorScout < menorValor) {
+        menorValor = valorScout;
+        menorAtletas = [atleta];
+      } else if (valorScout === menorValor) {
+        menorAtletas.push(atleta);
+      }
+    }
+    // console.log(maiorValor)
+    // console.log(maiorAtletas)
+    // console.log(menorValor)
+    // console.log(menorAtletas)
+    return { maiorAtletas, maiorValor, menorAtletas, menorValor };
+  }
+
+  // const [jogadoresSelecionados, setJogadoresSelecionados] = useState([]);
+
+  // const enviarJogadoresParaCampo = (atleta) => {
+  //   setJogadoresSelecionados(atleta);
+  // };
+
+  // const listarAtletasComScout = (scoutDesejado, valorDesejado) => {
+  //   const atletasComScout = [];
+  //   // console.log(listaAtletas, scoutDesejado, valorDesejado)
+  //   atletas.forEach((atleta) => {
+  //     const scout = atleta.scout;
+  //     if (scout[scoutDesejado] === valorDesejado) {
+  //       atletasComScout.push(atleta);
+  //     }
+  //   });
+  //   // console.log(atletasComScout)
+  //   return atletasComScout;
+  // };
   return (
     <div>
       {isLoading ? <Loading /> : ''}
-      <CampoFutebol jogadores={jogadoresSelecionados} />
+      {/* <CampoFutebol jogadores={jogadoresSelecionados} /> */}
       <div className='bg-white text-black flex justify-center items-center space-x-8 pt-3 px-3'>
         {partidas.map((partida, index) => (
           <div key={index}>
@@ -440,7 +544,8 @@ function HomePage() {
           ))}
         </div>
         <div className='w-5/12 bg-white text-black flex flex-row'>
-          {mediaGeralScouts[0]?
+          {/* <button type='button' className='' onClick={() => obterMaiorMenorScoutTipo('CA')}>Gols</button> */}
+          {/* {mediaGeralScouts[0]?
           <div className='flex flex-col flex-grow'>
             <b>Goleadores da liga ({mediaGeralScouts[0]['G'].valor} gols):</b>
             <div style={{ overflowY: 'auto', height: '70px' }} className='flex flex-col'>
@@ -451,9 +556,9 @@ function HomePage() {
               ))}
             </div>
           </div>
-          :''}
+          :''} */}
           
-          {mediaGeralScouts[0]?
+          {/* {mediaGeralScouts[0]?
           <div className='flex flex-col flex-grow'>
             <b>Interceptacoes ({mediaGeralScouts[0]['I'].valor} gols):</b>
             <div style={{ overflowY: 'auto', height: '70px' }} className='flex flex-col'>
@@ -464,7 +569,7 @@ function HomePage() {
               ))}
             </div>
           </div>
-          :''}
+          :''} */}
         </div>
         <div className='w-1/12 bg-white'>
           {rodada.status_mercado !== 1 ? (
@@ -545,8 +650,12 @@ function HomePage() {
                     <span>{sortDirection === 'asc' ? '▲' : '▼'}</span>
                   )}
               </th>
-                <th scope="col" className="sticky top-0 bg-white z-10 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Estatísticas
+                <th scope="col"
+                  className="sticky top-0 bg-white z-10 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('estatistica')}>
+                  Estatísticas {sortColumn === 'estatistica' && (
+                    <span>{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                  )}
                 </th>
               </tr>
             </thead>
@@ -616,9 +725,9 @@ function HomePage() {
                       <button 
                         className='me-2 px-2 w-8 py-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
                         onClick={() => handleClick(index)}>?</button>
-                      <button 
+                      {/* <button 
                         className='px-2 w-8 py-1 bg-lime-500 hover:bg-lime-600 text-white font-semibold rounded-full  shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50' 
-                        onClick={() => enviarJogadoresParaCampo(atleta)}><b>+</b></button>
+                        onClick={() => enviarJogadoresParaCampo(atleta)}><b>+</b></button> */}
                     </td>
                   </tr>
                   {activeTr === index && (
@@ -626,7 +735,7 @@ function HomePage() {
                       <td colSpan="7">
                         <div className='m-6' style={activeTr === index ? activeStyle : inactiveStyle}>
                           <h2 className="text-xl font-bold mb-2">{atleta.nome}</h2>
-                          <div className="grid grid-cols-2 gap-4">
+                          {/* <div className="grid grid-cols-2 gap-4">
                             <div>
                               <p><strong>Posição:</strong> {posicoes[atleta.posicao_id].abreviacao}</p>
                               <p><strong>Jogos:</strong> {atleta.jogos_num}</p>
@@ -640,9 +749,9 @@ function HomePage() {
                               <p><strong>Rodada:</strong> {atleta.rodada_id}</p>
                               <p><strong>Status:</strong> {status[atleta.status_id].nome}</p>
                             </div>
-                          </div>
+                          </div> */}
                           <div className="mt-4">
-                            <h3 className="text-lg font-bold">Scout</h3>
+                            {/* <h3 className="text-lg font-bold">Scout</h3> */}
                             {calcularEstatisticas(atleta)}
                           </div>
                         </div>

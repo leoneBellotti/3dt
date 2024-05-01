@@ -6,7 +6,7 @@ import { createTaskSchema } from "../schemas/task.schema.js";
 
 const router = Router();
 
-router.get('/loginCartola', loginCartola);
+router.post('/loginCartola', loginCartola);
 router.get('/cartola', getCartola);
 router.get('/bet', getBet);
 router.get('/mercadoStatus', getMercadoStatus);
